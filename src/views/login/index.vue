@@ -54,9 +54,8 @@
 
 <script>
 import { validUsername } from '@/utils/validate'
-import { cryptoPwd } from "@/utils";
 import md5 from 'crypto-js/md5'
-import Base64 from 'crypto-js/enc-base64'
+
 export default {
   name: 'Login',
   data() {
@@ -111,7 +110,7 @@ export default {
       this.$refs.loginForm.validate(valid => {
         if (valid) {
           this.loading = true
-          const pwd = md5("123456").toString();    
+          const pwd = md5('123456').toString()
           this.loginForm.password = pwd
           this.$store.dispatch('user/login', this.loginForm).then(() => {
             console.log('login')
