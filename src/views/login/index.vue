@@ -95,13 +95,12 @@ export default {
       this.$refs.loginForm.validate(valid => {
         if (valid) {
           this.loading = true
-          const pwd = md5('123456').toString()
-          this.loginForm.password = pwd
+          this.loginForm.password = md5(this.loginForm.password).toString()
           this.$store.dispatch('user/login', this.loginForm).then(() => {
-            console.log('login')
             this.$router.push({ path: this.redirect || '/' })
             this.loading = false
           }).catch(() => {
+            this.loginForm.password = '123456'
             this.loading = false
           })
         } else {
