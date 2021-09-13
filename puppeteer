@@ -1,0 +1,89 @@
+const puppeteer = require('puppeteer');
+const fs = require('fs');
+let gen = require("./index.js");
+
+async function genReport(target, username, pwd, safeCode) {
+  const browser = await puppeteer.launch({ headless: true, devtools: false});
+  const page = await browser.newPage();
+  await page.setViewport({
+    width: 1920,
+    height: 1080
+})
+  console.log("loading")
+  await page.goto(target);
+  
+  if (!safeCode) {
+    await page.waitForSelector('#btn_C')
+    await page.$eval( '#btn_C', form => form.click());
+    await page.waitFor(1000);
+  }
+  
+  console.log("logining", username, pwd, safeCode)
+  await page.waitForSelector('#username')
+  await page.type('#username', username);
+
+  await page.waitForSelector('#pwd')
+  await page.type('#pwd', pwd);
+
+  if (safeCode) {
+    await page.waitForSelector('#pwd_safe');
+    await page.type('#pwd_safe', safeCode);
+  }
+  
+  await page.waitFor(1000);
+  await page.$eval( '#loginBtn', form => {  form.click() });
+
+  console.log("navigating")
+  await page.waitForSelector('#report_btn');
+  await page.$eval('#report_btn', form => form.click());
+
+  
+  await page.waitForSelector('#search_btn');
+  await page.waitFor(1000);
+  await page.$eval('#search_btn', form => { form.click()});
+ 
+  
+  await page.waitForSelector('#result_type');
+  await page.waitForSelector('.re_div_body');
+  await page.waitForSelector('#loading', {hidden: true})
+  await page.waitForSelector('#report_loading', {hidden: true})
+  
+  // let cdp = await page.target().createCDPSession();
+  // const { data } = await cdp.send('Page.captureSnapshot', { format: 'mhtml' });
+  // fs.writeFileSync('page1.mhtml', data);
+  console.log("saving first table")
+  const html = await page.content();
+  fs.writeFileSync('page.html', html);
+
+
+  await page.waitForSelector('.word_link')
+  await page.$eval('.word_link', el => el.click());
+  await page.waitFor(1000 * 2);
+  await page.waitForSelector('#loading', {hidden: true})
+  await page.waitForSelector('#report_loading', {hidden: true})
+
+
+  // await page.waitFor(3000);
+  // await page.$eval('#alert_ok #ok_btn', el => el.click());
+
+  
+  // const html = await page.content();
+  // fs.writeFileSync('page.html', html);
+  // cdp = await page.target().createCDPSession();
+  // const { data: data2 } = await cdp.send('Page.captureSnapshot', { format: 'mhtml' });
+  // fs.writeFileSync('page2.mhtml', data2);
+  console.log("saving second table")
+  const html2 = await page.content();
+  fs.writeFileSync('page2.html', html2);
+
+  
+
+  // await page.screenshot({ path: 'example.png' });
+  await browser.close();
+
+  console.log("generating report")
+  gen();
+
+  console.log("done!");
+}
+module.exports = genReport;
